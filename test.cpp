@@ -31,7 +31,7 @@ class DCLList {
         size = 0;
     }
     ~DCLList(){
-
+        // delete curr;
     }
     void add(string name, int energy){
         if (size == 0) {
@@ -39,7 +39,7 @@ class DCLList {
             curr = head;
             }
         else if (size == 1){
-            head->next = new customer(name, energy, nullptr, nullptr);
+            head->next = new customer(name, energy, head, head);
             head->prev = head->next;
             curr = head->next;
         } else {
@@ -63,6 +63,7 @@ class DCLList {
             customer* temp = new customer(name, energy, curr->prev, curr);
             curr->prev->next = temp;
             curr->prev = temp;
+            curr = temp;
         }
         size++;
     }
@@ -109,9 +110,65 @@ class DCLList {
     void prev(){
         curr = curr->prev;
     }
+    // customer* find(string name){
+
+    // }
 };
 
+class LQueue {
+    private:
+        customer* head;
+        customer* curr;
+        int size;
+    public:
+    LQueue() {
+        head = nullptr;
+        curr = nullptr;
+        size = 0;
+    }
+    ~LQueue(){
+        // delete curr;
+    }
+    void add(string name, int energy){
+        if (size==0){
+            head = curr = new customer(name, energy, nullptr, nullptr);
+        } else {
+            curr->next = new customer(name, energy, nullptr, nullptr);
+            curr = curr->next;
+        }
+        size++;
+    }
+    customer* remove(){
+        if (size == 0) return nullptr;
+        else if (size == 1){
+            customer* temp = head;
+            head = curr = nullptr;
+            size--;
+            return temp;
+        } else {
+            customer* temp = head;
+            head = head->next;
+            size--;
+            return temp;
+        }
+    }
+    customer* get(){
+        return head;
+    }
+    // void clear(){
+        // chưa cần
+    // }
+    int getSize(){
+        return size;
+    }
+};
 int main(){
-
+    // create test cases for queue
+    LQueue* q = new LQueue();
+    q->add("A", 1);
+    q->add("B", 2);
+    q->add("C", 3);
+    customer* temp = q->remove();
+    cout << temp->energy << " " << temp->name;
 
 }
