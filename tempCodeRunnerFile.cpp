@@ -1,0 +1,2 @@
+
+    tail->prev = curr2;

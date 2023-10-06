@@ -1,11 +1,15 @@
 #include "main.h"
 
 class imp_res : public Restaurant
-{
-	public:	
+{		
+
+	public:
 		customer* head;
 		customer* curr;
 		int size;
+
+		customer* hhead;
+		customer* hcurr;
 
 		customer *qhead;
 		customer *qcurr;
@@ -18,7 +22,7 @@ class imp_res : public Restaurant
 		};
 
 		void RED(string name, int energy)
-		{
+		{	
 			cout << name << " " << energy << endl;
 			customer* cus;
 			//check name
@@ -88,10 +92,26 @@ class imp_res : public Restaurant
 					}
 				}
 				curr = cus;
+				// history
+				{
+					if (size == 0) {
+						hhead = cus;
+						hcurr = cus;
+					} else {
+						hcurr->next = cus;
+					}
+				}
 				size++;
 			} else if (check && size >= MAXSIZE){
-				if (qsize<MAXSIZE)
-
+				if (qsize == 0){
+					qhead = new customer (name, energy, nullptr, nullptr);
+					qcurr = qhead;
+				}
+				else if (qsize<MAXSIZE){
+					cus = new customer (name, energy, nullptr, nullptr);
+					qcurr->next = cus;
+					qcurr = cus;
+				}
 				qsize++;	
 			} 
 
@@ -99,12 +119,36 @@ class imp_res : public Restaurant
 		void BLUE(int num)
 		{
 			cout << "blue "<< num << endl;
-
+			if (num > MAXSIZE) num = MAXSIZE;
+			for (int i=0; i<num; i++){
+				// pop queue
+				// checkqueue voi tung customer
+				// dung -> remove
+				// pop queue
+				customer *temp = curr;
+				customer *temph = hhead;
+				while(true){
+					if (temp->name == temph->name){
+						//remove temp
+						break;
+					}
+					temp = temp->next;
+				}
+			}
+			//cho khach vao
+			while (qsize!=0&&size<MAXSIZE){
+				customer* cus = qhead;
+				qhead = qhead->next;
+				qsize--;
+				RED(cus->name, cus->energy);
+				// delete cus;
+			}
 		}
 		void PURPLE()
 		{
 			cout << "purple"<< endl;
-
+			//xep queue;
+			
 		}
 		void REVERSAL()
 		{
