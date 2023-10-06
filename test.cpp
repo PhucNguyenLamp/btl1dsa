@@ -1,5 +1,5 @@
 // #include "main.h"
-
+#include <string>
 #include <iostream>
 using namespace std;
 class customer {
@@ -50,29 +50,66 @@ class DCLList {
         }
         size++;
     }
-    void addbefore(customer* cus){
-
+    void addbefore(string name, int energy){
+        if (size == 0) {
+            head = new customer(name, energy, nullptr, nullptr);
+            curr = head;
+            }
+        else if (size == 1){
+            head->next = new customer(name, energy, nullptr, nullptr);
+            head->prev = head->next;
+            curr = head->next;
+        } else {
+            customer* temp = new customer(name, energy, curr->prev, curr);
+            curr->prev->next = temp;
+            curr->prev = temp;
+        }
+        size++;
     }
-    E remove(){
-
+    customer* remove(){
+        if (size == 0){
+            return nullptr;
+        }
+        if (size == 1){
+            customer* temp = curr;
+            curr = nullptr;
+            head = nullptr;
+            size--;
+            return temp;
+        }
+        if (size == 2){
+            customer* temp = curr;
+            curr = curr->next;
+            curr->next = curr;
+            curr->prev = curr;
+            size--;
+            return temp;
+        }
+        else {
+            customer* temp = curr;
+            curr->next->prev = curr->prev;
+            curr->prev->next = curr->next;
+            curr = curr->next;
+            size--;
+            return temp;
+        }
     }
-    E get(){
-
+    customer* get(){
+        return curr;
     }
     int getSize(){
-
+        return size;
     }
     bool isEmpty(){
-
+        return size == 0;
     }
     void next(){
-
+        curr = curr->next;
     }
     void prev(){
-
+        curr = curr->prev;
     }
-    
-}
+};
 
 int main(){
 
