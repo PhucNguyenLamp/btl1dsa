@@ -95,6 +95,7 @@ class DCLList {
             return temp;
         }
     }
+    // customer* remove()
     customer* get(){
         return curr;
     }
@@ -110,31 +111,37 @@ class DCLList {
     void prev(){
         curr = curr->prev;
     }
-    // customer* find(string name){
-
-    // }
+    bool check(string name){
+        customer* temp = head;
+        for (int i = 0; i < size; i++){
+            if (temp->name == name) return true;
+            temp = temp->next;
+        }
+        return false;
+    }
 };
 
 class LQueue {
     private:
         customer* head;
+        customer* rear; 
         customer* curr;
         int size;
     public:
     LQueue() {
         head = nullptr;
-        curr = nullptr;
+        rear = nullptr;
         size = 0;
     }
     ~LQueue(){
-        // delete curr;
+        // delete rear;
     }
     void add(string name, int energy){
         if (size==0){
-            head = curr = new customer(name, energy, nullptr, nullptr);
+            head = rear = new customer(name, energy, nullptr, nullptr);
         } else {
-            curr->next = new customer(name, energy, nullptr, nullptr);
-            curr = curr->next;
+            rear->next = new customer(name, energy, nullptr, nullptr);
+            rear = rear->next;
         }
         size++;
     }
@@ -142,7 +149,7 @@ class LQueue {
         if (size == 0) return nullptr;
         else if (size == 1){
             customer* temp = head;
-            head = curr = nullptr;
+            head = rear = nullptr;
             size--;
             return temp;
         } else {
@@ -161,14 +168,62 @@ class LQueue {
     int getSize(){
         return size;
     }
+    bool check(string name){
+        customer* temp = head;
+        for (int i = 0; i < size; i++){
+            if (temp->name == name) return true;
+            temp = temp->next;
+        }
+        return false;
+    }
+    bool isEmpty(){
+        return size == 0;
+    }
+    void moveTo(int n){
+        if (n >= size) n = size - 1;
+        curr = head;
+        for (int i = 0; i < n; i++){
+            curr = curr->next;
+        }
+    }
+    void next(){
+        curr = curr->next;
+    }
+    customer* getcurr(){
+        return curr;
+    }
+    int getPos(){
+        customer* temp = head;
+        int i = 0;
+        while (temp != curr){
+            temp = temp->next;
+            i++;
+        }
+        return i;
+    }
+    void prev(){
+        // if < 0 return
+        moveTo(getPos()-1);
+    }
+    void swap(int a, int b){
+        moveTo(a);
+        customer* temp = curr;
+        moveTo(b);
+        customer* temp2 = curr;
+        std::swap(temp->energy, temp2->energy);
+        std::swap(temp->name, temp2->name);
+    }
 };
 int main(){
     // create test cases for queue
-    LQueue* q = new LQueue();
-    q->add("A", 1);
-    q->add("B", 2);
-    q->add("C", 3);
-    customer* temp = q->remove();
-    cout << temp->energy << " " << temp->name;
-
+    LQueue *q = new LQueue();
+    q->add("a", 1);
+    q->add("b", 2);
+    q->add("c", 3);
+    q->swap(0,2);
+    q->moveTo(0);
+    for (int i = 0; i < 3; i++){
+        q->getcurr()->print();
+        q->next();
+    }
 }
