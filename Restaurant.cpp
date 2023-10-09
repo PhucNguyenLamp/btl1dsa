@@ -17,6 +17,9 @@ class imp_res : public Restaurant
 		~DCLList(){
 			// delete curr;
 		}
+		void setcurr(customer* c){
+			curr = c;
+		}
 		void add(string name, int energy){
 			if (size == 0) {
 				head = new customer(name, energy, nullptr, nullptr);
@@ -82,6 +85,13 @@ class imp_res : public Restaurant
 				}
 				size--;
 				return temp;
+			}
+		}
+		customer* remove(string name){
+			for (int i=0; i < size; i++){
+				customer* temp = curr;
+				if (temp->name == name) return remove();
+				next();
 			}
 		}
 		customer* get(){
@@ -204,6 +214,26 @@ class imp_res : public Restaurant
 			std::swap(temp->energy, temp2->energy);
 			std::swap(temp->name, temp2->name);
 		}
+		customer* removeAt(int n){
+			moveTo(n);
+			customer* temp;
+			if (n == 0){
+				temp = head;
+				head = head->next;
+				size--;
+			} else if (n == size - 1){
+				temp = rear;
+				moveTo(n-2);
+				rear = curr;
+				size--;
+			} else {
+				temp = curr;
+				moveTo(n-1);
+				curr->next = curr->next->next;
+				size--;
+			}
+			return temp;
+		}
 	};
 
 	public:
@@ -313,18 +343,126 @@ class imp_res : public Restaurant
 		void REVERSAL()
 		{
 			cout << "reversal" << endl;
-
+			//replace duong
+			customer* tempcurr = table->get();
+			LQueue* tempq = new LQueue();
+			customer* tempcus = table->get()->next;
+			int len = table->getSize();
+			for (int i=0; i<len; i++){
+				if (tempcus->energy > 0){
+					tempq->add(tempcus->name, tempcus->energy);
+				}
+				tempcus = tempcus->next;
+			}
+			for (int i=0; i<len; i++){
+				if (tempcus->energy > 0){
+					customer *tempremove = tempq->remove();
+					tempcus->energy = tempremove->energy;
+					tempcus->name = tempremove->name;
+				}	
+			}
+			//replace am
+			delete tempq;
+			tempq = new LQueue();
+			tempcus = table->get()->next;
+			for (int i=0; i<len; i++){
+				if (tempcus->energy < 0){
+					tempq->add(tempcus->name, tempcus->energy);
+				}
+				tempcus = tempcus->next;
+			}
+			for (int i=0; i<len; i++){
+				if (tempcus->energy < 0){
+					customer *tempremove = tempq->remove();
+					tempcus->energy = tempremove->energy;
+					tempcus->name = tempremove->name;
+				}	
+			}
+			delete tempq;
+			//set lai x
+			table->setcurr(tempcurr);
 		}
 		void UNLIMITED_VOID()
 		{
 			cout << "unlimited_void" << endl;
-
+			
 		}
 		void DOMAIN_EXPANSION()
 		{
 			cout << "domain_expansion" << endl;
-			int chewTwerkShoe;
-			int oanTLinh;
+			int chewTwerkShoe = 0;
+			int oanTLinh = 0;
+			//get cho chu thuat su
+			customer* tablecurr = table->get();
+			queue->moveTo(0);
+			customer* queuecurr = queue->get();
+			for (int i=0; i<table->getSize();i++){
+				chewTwerkShoe += tablecurr->energy;
+				table->next();
+			}
+			for (int i=0; i<queue->getSize();i++){
+				chewTwerkShoe += queuecurr->energy;
+			}
+			//get cho oan linh
+			customer* tablecurr = table->get();
+			queue->moveTo(0);
+			customer* queuecurr = queue->get();
+			for (int i=0; i<table->getSize();i++){
+				oanTLinh += tablecurr->energy;
+				table->next();
+			}
+			for (int i=0; i<queue->getSize();i++){
+				oanTLinh += queuecurr->energy;
+			}
+			if (chewTwerkShoe>=abs(oanTLinh)){
+				//kick oantlinh
+				//kick queue
+				int queueSize = queue->getSize();
+				for (int i=0; i<queueSize;i++){
+					queue->moveTo(i);
+					if (queue->getcurr()->energy < 0){
+						customer* temp = queue->removeAt(i);
+						cout << temp->name << "-" << temp->energy << endl;
+					}
+				}
+				//kick history (table)
+				int historySize = history->getSize();
+
+				for (int i=0; i<historySize;i++){
+					history->moveTo(i);
+					if (history->getcurr()->energy < 0){
+						customer* temp = history->removeAt(i);
+						table->remove(temp->name);
+						cout << temp->name << "-" << temp->energy << endl;
+					}
+				}
+			}else{
+				//kick chewtwerkshoe
+				//kick queue
+				int queueSize = queue->getSize();
+				for (int i=0; i<queueSize;i++){
+					queue->moveTo(i);
+					if (queue->getcurr()->energy > 0){
+						customer* temp = queue->removeAt(i);
+						cout << temp->name << "-" << temp->energy << endl;
+					}
+				}
+				//kick history (table)
+				int historySize = history->getSize();
+				for (int i=0; i<historySize;i++){
+					history->moveTo(i);
+					if (history->getcurr()->energy > 0){
+						customer* temp = history->removeAt(i);
+						table->remove(temp->name);
+						cout << temp->name << "-" << temp->energy << endl;
+					}
+				}
+			}
+			//chay red
+			while (!(queue->isEmpty())&&table->getSize()<MAXSIZE){
+				customer* temp = queue->remove();
+				RED(temp->name, temp->energy);
+			}
 			/*“Luận về Yêu” hay là “Con chó và Thằng Osin”
 				Chắc hẳn nhiều bạn trai, đặc biệt là các bạn hay đọc diễn đàn f17 VoZ khoảng năm 2010 đến 2013 không lạ lẫm gì với học thuyết Con chó và thằng Osin. Học thuyết này có nội dung ngắn gọn như sau: Bất kì cô gái xinh đẹp và khôn ngoan nào (chuẩn hotgirl hiện nay) đều có hai người bạn trai chính. Một là Con Chó — giàu có, đẹp trai, đi xế xịn — được các cô dùng để khoe và chứng tỏ giá trị của bản thân với thiên hạ. Hai là Thằng Osin — chăm chỉ, hiền lành, đa phần là học giỏi — luôn thờ phụng và sẵn sàng làm mọi việc các cô yêu cầu từ làm bài tập hộ đến đón thằng em trai. Tuy nhiên Thằng Osin sẽ không bao giờ được bước ra ánh sáng cuộc đời cùng với các cô, đơn giản vì Osin không bóng bẩy bằng Con Chó.
 

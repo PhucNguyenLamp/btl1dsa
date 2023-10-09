@@ -33,6 +33,9 @@ class DCLList {
     ~DCLList(){
         // delete curr;
     }
+    void setcurr(customer* c){
+        curr = c;
+    }
     void add(string name, int energy){
         if (size == 0) {
             head = new customer(name, energy, nullptr, nullptr);
@@ -118,6 +121,13 @@ class DCLList {
             temp = temp->next;
         }
         return false;
+    }
+    customer* remove(string name){
+        for (int i=0; i < size; i++){
+            customer* temp = curr;
+            if (temp->name == name) return remove();
+            next();
+        }
     }
 };
 
@@ -213,6 +223,27 @@ class LQueue {
         std::swap(temp->energy, temp2->energy);
         std::swap(temp->name, temp2->name);
     }
+    customer* removeAt(int n){
+        moveTo(n);
+        customer* temp;
+        if (n == 0){
+            temp = head;
+            head = head->next;
+            size--;
+        } else if (n == size - 1){
+            temp = rear;
+            moveTo(n-2);
+            rear = curr;
+            size--;
+        } else {
+            temp = curr;
+            moveTo(n-1);
+            curr->next = curr->next->next;
+            size--;
+        }
+        return temp;
+    }
+
 };
 int main(){
     // create test cases for queue
@@ -220,9 +251,14 @@ int main(){
     q->add("a", 1);
     q->add("b", 2);
     q->add("c", 3);
-    q->swap(0,2);
+    q->add("d", 4);
+    q->add("e", 5);
+    q->removeAt(2);
+    q->removeAt(0);
+    q->removeAt(2);
+    int size = q->getSize();
     q->moveTo(0);
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < size; i++){
         q->getcurr()->print();
         q->next();
     }
