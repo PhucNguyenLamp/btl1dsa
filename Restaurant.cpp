@@ -1,5 +1,6 @@
 #include "main.h"
-
+// extern int MAXSIZE;
+//Restaurant.cpp
 class imp_res : public Restaurant
 {		
 	public:
@@ -23,12 +24,13 @@ class imp_res : public Restaurant
 		void add(string name, int energy){
 			if (size == 0) {
 				head = new customer(name, energy, nullptr, nullptr);
+				head->next = head->prev = head;
 				curr = head;
 				}
 			else if (size == 1){
-				head->next = new customer(name, energy, head, head);
-				head->prev = head->next;
-				curr = head->next;
+				curr->next = new customer(name, energy, curr, curr);
+				curr->prev = curr->next;
+				curr = curr->next;
 			} else {
 				customer* temp = new customer(name, energy, curr, curr->next);
 				curr->next->prev = temp;
@@ -43,7 +45,7 @@ class imp_res : public Restaurant
 				curr = head;
 				}
 			else if (size == 1){
-				head->next = new customer(name, energy, nullptr, nullptr);
+				head->next = new customer(name, energy, head, head);
 				head->prev = head->next;
 				curr = head->next;
 			} else {
@@ -54,16 +56,17 @@ class imp_res : public Restaurant
 			}
 			size++;
 		}
-		customer* remove(){
+		void remove(){ // xoa ngay vi tri con tro curr
 			if (size == 0){
-				return nullptr;
+				return;
 			}
 			else if (size == 1){
 				customer* temp = curr;
+				delete temp;
 				curr = nullptr;
 				head = nullptr;
 				size--;
-				return temp;
+				return;
 			}
 			else if (size == 2){
 				customer* temp = curr;
@@ -71,7 +74,8 @@ class imp_res : public Restaurant
 				curr->next = curr;
 				curr->prev = curr;
 				size--;
-				return temp;
+				delete temp;
+				return;
 			}
 			else {
 				customer* temp = curr;
@@ -84,15 +88,49 @@ class imp_res : public Restaurant
 					curr = curr->prev;
 				}
 				size--;
-				return temp;
+				delete temp;
+				return;
 			}
 		}
-		customer* remove(string name){
+		void remove(string name){
+			customer* temp = curr;
+			int energy = curr->energy;
 			for (int i=0; i < size; i++){
-				customer* temp = curr;
-				if (temp->name == name) return remove();
-				next();
+				if (temp->name == name){
+					if (size == 0){
+						return;
+					}
+					else if (size == 1){
+						curr = nullptr;
+						head = nullptr;
+						size--;
+						delete temp;
+						return;
+					}
+					else if (size == 2){
+						customer* tempdelete = temp;
+						temp->next->prev = temp->prev;
+						temp->prev->next = temp->next;
+						curr = temp->next;
+						size--;
+						delete tempdelete;
+						return;
+					} else {
+						temp->next->prev = temp->prev;
+						temp->prev->next = temp->next;
+						if (energy > 0) {
+							curr = temp->next;
+						} else {
+							curr = temp->prev;
+						}
+						size--;
+						delete temp;
+						return;
+					}
+				}
+				temp = temp->next;
 			}
+			return;
 		}
 		customer* get(){
 			return curr;
@@ -110,10 +148,10 @@ class imp_res : public Restaurant
 			curr = curr->prev;
 		}
 		bool check(string name){
-        customer* temp = head;
-        for (int i = 0; i < size; i++){
-            if (temp->name == name) return true;
-            temp = temp->next;
+			customer* temp = curr;
+			for (int i = 0; i < size; i++){
+				if (temp->name == name) return true;
+				temp = temp->next;
         }
         return false;
     	}
@@ -130,6 +168,17 @@ class imp_res : public Restaurant
 			rear = nullptr;
 			size = 0;
 		}
+		LQueue(LQueue* q){
+			// deep copy
+			head = nullptr;
+			rear = nullptr;
+			size = 0;
+			customer* temp = q->head;
+			for (int i=0; i<q->size; i++){
+				add(temp->name, temp->energy);
+				temp = temp->next;
+			}
+		}
 		~LQueue(){
 			// delete rear;
 		}
@@ -142,19 +191,50 @@ class imp_res : public Restaurant
 			}
 			size++;
 		}
-		customer* remove(){
-			if (size == 0) return nullptr;
+		void remove(){
+			if (size == 0) return;
 			else if (size == 1){
 				customer* temp = head;
 				head = rear = nullptr;
 				size--;
-				return temp;
+				delete temp;
 			} else {
 				customer* temp = head;
 				head = head->next;
 				size--;
-				return temp;
+				delete temp;
 			}
+		}
+		// customer* removeAt(int i){
+		// 	if (i == 0) return remove();
+		// 	else if (i == size - 1){
+		// 		customer* temp = rear;
+		// 		curr = head;
+		// 		for (int i=0; i<size-2; i++){
+		// 			curr = curr->next;
+		// 		}
+		// 		rear = curr; // detach rear luon
+		// 		size--;
+		// 		return temp;
+		// 	} else {
+		// 		curr = head;
+		// 		for (int j=0; j<i-1; j++){ //ngựa hí hí 🐴
+		// 			curr = curr->next;
+		// 		}
+		// 		customer* temp = curr->next;
+		// 		curr->next = curr->next->next;
+		// 		size--;
+		// 		return temp;
+		// 	}
+		// }
+		void remove(string name){
+			if (size == 0) return;
+			customer* temp = head;
+			for (int i=0; i< size; i++){
+				if (temp->name == name) return removeAt(i);
+				temp = temp->next;
+			}
+			return;
 		}
 		customer* get(){
 			return head;
@@ -214,25 +294,27 @@ class imp_res : public Restaurant
 			std::swap(temp->energy, temp2->energy);
 			std::swap(temp->name, temp2->name);
 		}
-		customer* removeAt(int n){
+		void removeAt(int n){
 			moveTo(n);
 			customer* temp;
 			if (n == 0){
 				temp = head;
 				head = head->next;
 				size--;
+				delete temp;
 			} else if (n == size - 1){
 				temp = rear;
-				moveTo(n-2);
+				moveTo(n-1);
 				rear = curr;
 				size--;
+				delete temp;
 			} else {
 				temp = curr;
 				moveTo(n-1);
 				curr->next = curr->next->next;
 				size--;
+				delete temp;
 			}
-			return temp;
 		}
 	};
 
@@ -249,13 +331,13 @@ class imp_res : public Restaurant
 
 		void RED(string name, int energy)
 		{	
-			cout << name << " " << energy << endl;
-			bool check = table->check(name) && queue->check(name);
+			// cout << name << " " << energy << endl;
+			bool check = table->check(name) || queue->check(name); // true là bị trùng
 			if (energy != 0 && table->getSize() < MAXSIZE && !check){
 				if (table->getSize()<=1){
 					table->add(name, energy);
 				} else if (!(table->getSize() >= MAXSIZE/2)) {
-					if (table->get()->energy >= energy){
+					if (table->get()->energy <= energy){ //energy khach >= energy ban
 						table->add(name, energy);
 					} else {
 						table->addbefore(name, energy);
@@ -264,20 +346,22 @@ class imp_res : public Restaurant
 					int max = abs(energy - table->get()->energy);
 					customer* maxcus = table->get();
 					customer* x = table->get();
-					table->next();
+					x = x->next;
 					while (table->get() != x){
-						if (max < abs(energy - table->get()->energy)){
-							max = abs(energy - table->get()->energy);
-							maxcus = table->get();
+						if (max < abs(energy - x->energy)){
+							max = abs(energy - x->energy);
+							maxcus = x;
 						}
+						x = x->next;
 					}
 					int noabsmax = energy - maxcus->energy;
+
+					table->setcurr(maxcus);
 					if (noabsmax < 0){
 						table->addbefore(name, energy);
 					} else {
 						table->add(name, energy);
 					}
-
 				}
 				history->add(name, energy);
 			} else if (energy != 0 && queue->getSize()<MAXSIZE && !check) {
@@ -285,111 +369,250 @@ class imp_res : public Restaurant
 			}
 		}
 		void BLUE(int num)
-		{
-			cout << "blue "<< num << endl;
+		{ //history
+			// cout << "blue "<< num << endl;
 			if (num >= table->getSize()){
 				num = table->getSize();
 			}
 			//kick khach cu nhat //ko can kiem tra vi = getsize
 			for (int i = 0; i < num; i++){
-				customer* removed = history->remove();
-				for (int i=0; i<table->getSize();i++){
-					if (table->get()->name == removed->name){
-						table->remove();
+				int removedenergy = history->get()->energy;
+				string removedname = history->get()->name;
+				history->remove();
+
+				customer* temp = table->get();
+				for (int j=0; j<table->getSize();j++){
+					if (temp->name == removedname){
+						string tempname = temp->name;
+						temp = temp->next;
+						table->remove(tempname);
 						break;
 					}
-					table->next();
+						temp = temp->next;
 				}
 			}
 			//pop queue
 			//chay red
 			while (!(queue->isEmpty())&&table->getSize()<MAXSIZE){
-				customer* temp = queue->remove();
-				RED(temp->name, temp->energy);
+				string removedname = queue->get()->name;
+				int removedenergy = queue->get()->energy;
+				queue->remove();
+				RED(removedname, removedenergy);
 			}
 		}
-		void inssort2(LQueue *head, int n, int incr){
+		void inssort2(LQueue *head, int n, int incr, int& swapcount){
 			for (int i=incr; i<n; i+=incr){
-				for (int j=i; (j>=incr) && (head->getat(j)->energy < head->getat(j-incr)->energy); j-=incr){
+				for (int j=i; (j>=incr) && (abs(head->getat(j)->energy) > abs(head->getat(j-incr)->energy)); j-=incr){
 					head->swap(j, j-incr);
+					swapcount++;
 				}
 			}
 		}
-		void shellsort(LQueue *head, int n){
+		void shellsort(LQueue *head, int n, int& swapcount){
 			for (int i=n/2; i>2; i/=2){
 				for (int j=0; j<i; j++){
-					inssort2(head, n-j, i);
+					inssort2(head, n-j, i, swapcount);
 				}
 			}
-			inssort2(head, n, 1);
+			inssort2(head, n, 1, swapcount);
 		}
 		void PURPLE()
 		{
-			cout << "purple"<< endl;
-			//xep queue;
-			int maxenergy = queue->get()->energy;
+			// cout << "purple"<< endl;
+			//xep queue; //nếu có queue
+
+			// abs() từ lớn đến bé
+			if (!queue->isEmpty()){
+			int maxenergy = abs(queue->get()->energy);
 			int maxindex = 0;
 			int N = 0;
 			for (int i=1;i<queue->getSize();i++){
-				if (abs(queue->getat(i)->energy) > maxenergy){
+				if (abs(queue->getat(i)->energy) >= maxenergy){
 					maxenergy = queue->getat(i)->energy;
 					maxindex = i;
 				}
 			}
 			// sort from 0 to i
-			shellsort(queue, maxindex+1);
+			LQueue *begin = new LQueue(queue);
+			shellsort(queue, maxindex+1,N);
+			// fix the stable of the queue after sorting
+			for (int i=0; i<queue->getSize()-1; i++){
+				//move queue den cho do
+				queue->moveTo(i);
+				// neu 2 thang bang nhau -> check xem co dung thu tu ko
+				if (queue->getcurr()->energy == queue->getcurr()->next->energy){
+					// lay thu tu cua curr va curr next
+					string namecurr = queue->getcurr()->name;
+					string namecurrnext = queue->getcurr()->next->name; 
+					// lay thu tu cua curr va curr nexg trong begin
+					int currindex = 0;
+					int currnextindex = 0;
+					for (int j=0; j<begin->getSize(); j++){
+						begin->moveTo(j);
+						if (begin->getcurr()->name == namecurr){
+							currindex = j;
+						}
+						if (begin->getcurr()->name == namecurrnext){
+							currnextindex = j;
+						}
+					}
+					if (currindex > currnextindex){
+						// neu sai thu tu -> swap
+						queue->swap(i, i+1);
+					}
+				}
+			}
 			BLUE(N%MAXSIZE);
+			}
 		}
 		void REVERSAL()
 		{
-			cout << "reversal" << endl;
+			// cout << "reversal" << endl;
 			//replace duong
-			customer* tempcurr = table->get();
+			string temp = table->get()->name;
 			LQueue* tempq = new LQueue();
-			customer* tempcus = table->get()->next;
+			customer* tempcus = table->get();
 			int len = table->getSize();
+			// int qlen = 0;
 			for (int i=0; i<len; i++){
 				if (tempcus->energy > 0){
 					tempq->add(tempcus->name, tempcus->energy);
+					// qlen++;
 				}
-				tempcus = tempcus->next;
+				if (i!=len-1) tempcus = tempcus->prev;
 			}
 			for (int i=0; i<len; i++){
 				if (tempcus->energy > 0){
-					customer *tempremove = tempq->remove();
-					tempcus->energy = tempremove->energy;
-					tempcus->name = tempremove->name;
-				}	
+					tempcus->energy = tempq->get()->energy;
+					tempcus->name = tempq->get()->name;
+					tempq->remove();
+				}
+				tempcus = tempcus->next;
 			}
-			//replace am
+			//replace âm
 			delete tempq;
 			tempq = new LQueue();
-			tempcus = table->get()->next;
+			tempcus = table->get();
+			// qlen = 0;
 			for (int i=0; i<len; i++){
 				if (tempcus->energy < 0){
 					tempq->add(tempcus->name, tempcus->energy);
+					// qlen++;
 				}
-				tempcus = tempcus->next;
+				if (i!=len-1) tempcus = tempcus->prev;
 			}
 			for (int i=0; i<len; i++){
 				if (tempcus->energy < 0){
-					customer *tempremove = tempq->remove();
-					tempcus->energy = tempremove->energy;
-					tempcus->name = tempremove->name;
-				}	
+					tempcus->energy = tempq->get()->energy;
+					tempcus->name = tempq->get()->name;
+					tempq->remove();
+				}
+				tempcus = tempcus->next;
 			}
+			
 			delete tempq;
-			//set lai x
-			table->setcurr(tempcurr);
+			// set lai x
+			tempcus = table->get();
+			for (int i=0; i<len; i++){
+				if (tempcus->name == temp){
+					table->setcurr(tempcus);
+				}
+				tempcus = tempcus->prev;
+			}
 		}
 		void UNLIMITED_VOID()
 		{
-			cout << "unlimited_void" << endl;
-			
+			// cout << "unlimited_void" << endl;
+			//bo truong hop < 4
+			int len = table->getSize();
+			if (len < 4) return;
+			customer *left = table->get();
+			customer *right = table->get()->next->next->next;
+			//init
+			int minoutersum;
+			for (int i=0; i<len; i++){
+				customer* templeft = table->get(); 
+				int sum = 0;
+				//dich chuyen
+				for (int k=0; k<i;k++){
+					templeft = templeft->next;
+				}
+				customer *temp = templeft;
+				customer *tempright = templeft->next->next->next;
+				//get tong 4 cai dau
+				for (int j=0; j<4;j++){
+					sum += temp->energy;
+					temp = temp->next;
+				}
+				//nho nhat
+				int minsum = sum;
+				temp = tempright;
+				//so sanh nhung cai sau
+				for (int l=4; l<len;l++){
+					temp = temp->next;
+					sum += temp->energy;
+					if (sum <= minsum){
+						minsum = sum;
+						//move to
+						tempright = temp;
+					}
+				}
+
+				if (i==0){
+					minoutersum = minsum;
+				} else if (minsum <= minoutersum){
+					minoutersum = minsum;
+					//move to
+					left = templeft;
+					right = tempright;
+				}
+			}
+			// co l r
+			// co dc day nho nhat
+			// tim phan tu nho nhat
+			customer* smallest = left;
+			customer* temp = left;
+			int count = 1; //hjhj
+			while (temp!=right){
+				count++;
+				temp = temp->next;
+			}
+			temp = left;
+			// temp = temp->next;
+			for (int i=0; i<count; i++){
+				if (smallest->energy > temp->energy){
+					smallest = temp;
+				}
+				temp = temp->next;
+			}
+			// in ra tu nho nhat den cuoi theo chieu dong ho
+			temp = smallest;
+			count = 1;
+			while (temp!=right){
+				count++;
+				temp = temp->next;
+			}
+			temp = smallest;
+
+			customer* temp2 = left;
+			int count2 = 0;
+			while (temp2!=temp){
+				count2++;
+				temp2 = temp2->next;
+			}
+			temp2 = left;
+			for (int i=0; i<count; i++){
+				cout << temp->name << "-" << temp->energy << endl;
+				temp = temp->next;
+			}
+			for (int i=0; i<count2; i++){
+				cout << temp2->name << "-" << temp2->energy << endl;
+				temp2 = temp2->next;
+			}
 		}
 		void DOMAIN_EXPANSION()
 		{
-			cout << "domain_expansion" << endl;
+			// cout << "domain_expansion" << endl;
 			int chewTwerkShoe = 0;
 			int oanTLinh = 0;
 			//get cho chu thuat su
@@ -397,71 +620,94 @@ class imp_res : public Restaurant
 			queue->moveTo(0);
 			customer* queuecurr = queue->get();
 			for (int i=0; i<table->getSize();i++){
-				chewTwerkShoe += tablecurr->energy;
-				table->next();
+				if (tablecurr->energy > 0) chewTwerkShoe += tablecurr->energy;
+				tablecurr = tablecurr->next;
 			}
 			for (int i=0; i<queue->getSize();i++){
-				chewTwerkShoe += queuecurr->energy;
+				if (queuecurr->energy > 0) chewTwerkShoe += queuecurr->energy;
+				queuecurr = queuecurr->next;
 			}
 			//get cho oan linh
-			customer* tablecurr = table->get();
+			tablecurr = table->get();
 			queue->moveTo(0);
-			customer* queuecurr = queue->get();
+			queuecurr = queue->get();
 			for (int i=0; i<table->getSize();i++){
-				oanTLinh += tablecurr->energy;
-				table->next();
+				if (tablecurr->energy < 0) oanTLinh += tablecurr->energy;
+				tablecurr = tablecurr->next;
 			}
 			for (int i=0; i<queue->getSize();i++){
-				oanTLinh += queuecurr->energy;
+				if (queuecurr->energy < 0) oanTLinh += queuecurr->energy;
+				queuecurr = queuecurr->next;
+			}
+			if (chewTwerkShoe==0||oanTLinh==0){
+				return;
 			}
 			if (chewTwerkShoe>=abs(oanTLinh)){
 				//kick oantlinh
-				//kick queue
+				//kick queue // gần đây nhất (từ đuôi đến đầu)
 				int queueSize = queue->getSize();
-				for (int i=0; i<queueSize;i++){
+				for (int i=queueSize-1; i>=0;i--){
 					queue->moveTo(i);
 					if (queue->getcurr()->energy < 0){
-						customer* temp = queue->removeAt(i);
-						cout << temp->name << "-" << temp->energy << endl;
+
+						//customer* temp = queue->removeAt(i);
+						int energy = queue->getat(i)->energy;
+						string name = queue->getat(i)->name;
+						queue->removeAt(i);
+						cout << name << "-" << energy << endl;
 					}
 				}
-				//kick history (table)
+				//kick history (table) 
 				int historySize = history->getSize();
 
-				for (int i=0; i<historySize;i++){
+				for (int i=historySize-1; i>=0;i--){
 					history->moveTo(i);
 					if (history->getcurr()->energy < 0){
-						customer* temp = history->removeAt(i);
-						table->remove(temp->name);
-						cout << temp->name << "-" << temp->energy << endl;
+						// customer* temp = history->removeAt(i);
+						int energy = history->getat(i)->energy;
+						string name = history->getat(i)->name;
+						history->removeAt(i);
+						table->remove(name);
+						cout << name << "-" << energy << endl;
 					}
 				}
 			}else{
 				//kick chewtwerkshoe
 				//kick queue
 				int queueSize = queue->getSize();
-				for (int i=0; i<queueSize;i++){
+				for (int i=queueSize-1; i>=0;i--){
 					queue->moveTo(i);
 					if (queue->getcurr()->energy > 0){
-						customer* temp = queue->removeAt(i);
-						cout << temp->name << "-" << temp->energy << endl;
+						// customer* temp = queue->removeAt(i);
+						int energy = queue->getat(i)->energy;
+						string name = queue->getat(i)->name;
+						queue->removeAt(i);
+						cout << name << "-" << energy << endl;
 					}
 				}
 				//kick history (table)
 				int historySize = history->getSize();
-				for (int i=0; i<historySize;i++){
+				for (int i=historySize-1; i>=0;i--){
 					history->moveTo(i);
 					if (history->getcurr()->energy > 0){
-						customer* temp = history->removeAt(i);
-						table->remove(temp->name);
-						cout << temp->name << "-" << temp->energy << endl;
+						// customer* temp = history->removeAt(i);
+						int energy = history->getat(i)->energy;
+						string name = history->getat(i)->name;
+						history->removeAt(i);
+						table->remove(name);
+						cout << name << "-" << energy << endl;
 					}
 				}
 			}
 			//chay red
 			while (!(queue->isEmpty())&&table->getSize()<MAXSIZE){
-				customer* temp = queue->remove();
-				RED(temp->name, temp->energy);
+				//customer* temp = queue->remove();
+				customer* temp = queue->get();
+				int energy = temp->energy;
+				string name = temp->name;
+				queue->remove();
+
+				RED(name, energy);
 			}
 			/*“Luận về Yêu” hay là “Con chó và Thằng Osin”
 				Chắc hẳn nhiều bạn trai, đặc biệt là các bạn hay đọc diễn đàn f17 VoZ khoảng năm 2010 đến 2013 không lạ lẫm gì với học thuyết Con chó và thằng Osin. Học thuyết này có nội dung ngắn gọn như sau: Bất kì cô gái xinh đẹp và khôn ngoan nào (chuẩn hotgirl hiện nay) đều có hai người bạn trai chính. Một là Con Chó — giàu có, đẹp trai, đi xế xịn — được các cô dùng để khoe và chứng tỏ giá trị của bản thân với thiên hạ. Hai là Thằng Osin — chăm chỉ, hiền lành, đa phần là học giỏi — luôn thờ phụng và sẵn sàng làm mọi việc các cô yêu cầu từ làm bài tập hộ đến đón thằng em trai. Tuy nhiên Thằng Osin sẽ không bao giờ được bước ra ánh sáng cuộc đời cùng với các cô, đơn giản vì Osin không bóng bẩy bằng Con Chó.
@@ -517,24 +763,26 @@ class imp_res : public Restaurant
 				Mình viết không nhằm mục đích chỉ ra thế nào là yêu đúng, yêu sai. Mình cho rằng tình yêu là lãnh địa huyền bí của cảm xúc, những phân tích tâm lí hay triết học sâu sắc đến nhường nào cũng không thể bao trùm hết ý nghĩa của tình yêu. Mình chỉ mong các bạn nào kiên nhẫn đọc hết bài viết này (chắc là bạn cũng đang yêu?), hãy mở lòng và vị tha hơn với sự mù quáng của những kẻ đang yêu. Vì bản thân tình yêu đâu có tội, đúng không?
 
 				Tái bút: Dù viết có vẻ logic và deep như vậy nhưng tác giả yêu vào cũng lú bỏ mẹ, nên các bạn cứ yêu nhiệt đi, nghĩ làm gì cho mệt ihihi
+
+				- nguồn https://www.linkedin.com/pulse/lu%E1%BA%ADn-v%E1%BB%81-y%C3%AAu-hay-l%C3%A0-con-ch%C3%B3-v%C3%A0-th%E1%BA%B1ng-osin-nguy%E1%BB%85n-duy-qu%C3%AD
 			*/
 		}
 		void LIGHT(int num)
 		{
-			cout << "light " << num << endl;
+			// cout << "light " << num << endl;
 			if (num>0) {
 				customer *temp = table->get();
 				int len = table->getSize();
 				for (int i=0;i<len;i++){
 					cout << temp->name << "-" << temp->energy << endl;
-					table->next();
+					temp = temp->next;
 				}
 			} else if (num<0) {
 				customer *temp = table->get();
 				int len = table->getSize();
 				for (int i=0;i<len;i++){
 					cout << temp->name << "-" << temp->energy << endl;
-					table->prev();
+					temp = temp->next;
 				}
 			} else {
 				int len = queue->getSize();
@@ -544,3 +792,6 @@ class imp_res : public Restaurant
 			}
 		}
 };
+/*Có một cậu bé tên là Alex, một ngày nọ, cậu quyết định mua một dây cáp display type C mới cho chiếc máy tính xách tay của mình. Máy tính xách tay của Alex chỉ có cổng USB type C để kết nối với màn hình ngoại. Cậu đã tìm hiểu trực tuyến và thấy một chiếc dây cáp display type C trông rất giống với một sản phẩm displayport. Tuy nhiên, do sự vội vã, cậu không đọc kỹ mô tả sản phẩm và đã mua nhầm một dây cáp displayport thay vì dây display type C.
+Khi sản phẩm mới của Alex được giao đến, cậu đã mở nó ra và thử kết nối với máy tính xách tay và màn hình ngoại. Tuy nhiên, khi cậu kết nối cáp, không có hiển thị nào xuất hiện trên màn hình ngoại. Alex đã thử nhiều cách khác nhau, tắt và bật lại máy tính, đổi cổng kết nối, nhưng vẫn không có sự thay đổi. Cậu rất buồn và trầm cảm, vì máy tính xách t
+*/
